@@ -1,0 +1,86 @@
+\documentclass[sigconf,nonacm]{acmart}
+\usepackage{natbib}
+\usepackage[utf8]{inputenc}
+
+\AtBeginDocument{%
+	\providecommand\BibTeX{{%
+			\normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+\newcommand{\scores}{\textsc{SCORES}}
+
+\usepackage{verbatim}
+\usepackage[linesnumbered, boxed, resetcount]{algorithm2e}
+%opening
+\title{\textbf{Razlikovanje LLM-generirane in človeško napisane kode s konservativnim učenjem }}
+
+\author{Alen Petek}
+\email{alen.petek2@student.um.si}
+\affiliation{%
+	\institution{Fakulteta za elektrotehniko, \\računalništvo in informatiko,\\
+		Univerza v Mariboru}
+	\city{Maribor}
+	\country{Slovenija}
+}
+\author{Nea Nikolić}
+\email{nea.nikolic@student.um.si}
+\affiliation{%
+	\institution{Fakulteta za elektrotehniko, \\računalništvo in informatiko,\\
+		Univerza v Mariboru}
+	\city{Maribor}
+	\country{Slovenija}
+}
+\author{Andraž Podpečan}
+\email{andraz.podpecan1@student.um.si}
+\affiliation{%
+	\institution{Fakulteta za elektrotehniko, \\računalništvo in informatiko,\\
+		Univerza v Mariboru}
+	\city{Maribor}
+	\country{Slovenija}
+}
+\author{Matevž Sladič}
+\email{matevz.sladic@student.um.si}
+\affiliation{%
+	\institution{Fakulteta za elektrotehniko, \\računalništvo in informatiko,\\
+		Univerza v Mariboru}
+	\city{Maribor}
+	\country{Slovenija}
+}
+\author{Rok Žerdoner}
+\email{rok.zerdoner@student.um.si}
+\affiliation{%
+	\institution{Fakulteta za elektrotehniko, \\računalništvo in informatiko,\\
+		Univerza v Mariboru}
+	\city{Maribor}
+	\country{Slovenija}
+}
+
+
+\begin{document}
+
+\maketitle
+
+\section*{Povzetek}
+V svetu, ki postaja vedno bolj odvisen od tehnologije, so nastali mnogi napredki, med najbolj znamenite v zadnjih letih seveda spada razvoj umetne inteligence, kot so ChatGpt, ki velja za najbolj znanega, Gemini, Copilot, Claude, DeepSeek in mnogi drugi. Ta napredek je s sabo prinesel mnogo ugodnosti, saj so ljudje začeli umetno inteligenco uporabljati kot orodje, ki jim je pomagalo pri dnevnih opravilih. S časom so se ta orodja izboljšala, postala pametnejša in natančnejša. Kmalu niso bila več samo orodja, ampak so lahko preprosta dela in besedila ustvarjali sami.
+Turingov test je preizkus, ali se lahko robot ekvivalentno oziroma nerazločljivo obnaša kot človek. Razvoj umetne inteligence je doprinesel podobno vprašanje, ali lahko ločimo besedila, ki jih je ustvaril človek od besedil, ki jih je ustvarila umetna inteligenca.
+S sledečo nalogo, bomo poskušali z uporabo velikih jezikovnih modelov, značilnih karakteristik generirane programske kode in različnimi metodami razpoznavanje ločiti človeško ustvarjeno programsko kodo od tiste, ki jo je ustvarila umetna inteligenca.
+
+\section*{Ključne besede}
+velik jezikovni model, umetna inteligenca, CodeGPTSensor, ChatGPT, konservativno učenje
+
+\section{Uvod}
+Z razvojem velikih jezikovnih modelov (ang. Large Language Model - LLM) \cite{naveed2023comprehensive} se je kvaliteta strojno generirane vsebine, kot so besedila, dialog in celo programska koda, eksponentno izboljšala. Napredki v velikih jezikovnih modelih in umetni inteligenci (ang. Artificial Intelligence- AI) so v zadnjih letih prinesli veliko pozornosti in vzburili mnogo razprav o prihodnosti teh orodji znotraj industrije in akademije. Kot primer lahko vzamemo najbolj znano umetno inteligenco ChatGPT \cite{sakib2023chatgpt}, ki je zasnovan na principu okrepitvenega učenja od človeške interakcije (ang. Reinforcement Learning from Human Feedback - RLHF)\cite{lee2023rlaif}, kar dokazuje sposobnost umetne inteligence za razumevanja povpraševanj, pogovorov in podajanja pravilnih in natančnih odgovorov, v mnogih različnih panogah, vse od pisateljstva do medicine.
+Z razvojem umetno ustvarjenih del, se je prikazal problem, kako ločiti človeško ustvarjena dela od tistih, ki so ustvarjeni s pomočjo umetne inteligence. S tem vprašanjem so se začele mnoge raziskave v velike jezikovne modele, natančneje v možnosti generiranja programske kode, med katerimi je najbolj zanesljiv Codex \cite{zhao2023empirical}. Vendar kljub napredkom v generiranju programkse kode z velikimi jezikovnimi modeli raziskave kažejo, da večina ljudi, še posebej osebje v računalništvu, je skeptičnih o zanesljivosti modelov, določeni izražajo tudi strah. Kot primer lahko vzamemo spletno stran Stack Overflow, ki je prepovedala vse prispevke narejene z uporabo ChatGPT.
+S tem strahom so se začele raziskave o prepoznavi programske kode generirane z uporabo umetne inteligence, kjer so odkrili, da kljub dobro naučenih modelih, so se pojavili določeni vzorci v kodi generirani s pomočjo velikih jezikovnih modelov \cite{cave2019hopes}, kot so različne značilnosti, vključno s slogovnimi nedoslednostmi in napačno uporabo API-jev (aplikacijski programski vmesnik, ang. Aplication Program Interface).
+Med vsemi detektorji programske kode generirane z uporabo ChatGPT se je CodeGPTSensor\cite{xu2024distinguishing}, metoda, ki temelji na kontrastnem učnem ogrodju s semantičnim kodirnikom kode UniXcoder \cite{guo2022unixcoder}. UniXcoder je vnaprej pripravljen model, ki vključuje semantične in sintaksne informacije iz izvorne kode za podporo opravil, povezanih s programsko kodo. Za učenje različnih predstavitev kode za razlikovanje ChatGPT generirane kode od tiste, ki jo je napisal človek, uporablja kontrastno učno ogrodje za natančno nastavitev UniXcoderja, ki se je izkazal za enega izmed najbolj natančnih.
+V tej nalogi bomo preizkusili poustvariti rezultate natančnosti razpoznavanja umetno ustvarjene programske kode in celo izboljšati CodeGPTSensor s svojimi učnimi modeli, z namenom, da dosežemo še boljšo natančnost in konsistentnost prepoznavanja kode ustvarjene z umetno inteligenco od tiste, ki jo je ustvaril človek.
+
+\section{Sorodni članki}
+Glede na to, da naša ideja temelji na optimizacije enega izmed najboljših metod za razpoznavanje med človeško in programsko kodo umetne inteligence \cite{oedingen2024chatgpt}, smo potrebovali referenco oziroma primerjavo z ostalimi, pogosteje uporabljenimi metodami, ki temeljijo na že definiranih velikimi jezikovnimi modeli in strategijah povezanih s takšnim načinom razpoznavanja.
+V članku »Is This You, LLM? Recognizing AI-written Programs with Multilingual Code Stylometry« \cite{gurioli2024you} smo preučili najbolj osnovne strategije prepoznavanja generirane. Med najpogostejše tehnike spada iskanje vzorcev v generirani kodi, saj se naučeni model drži določenih stilov generiranja kode. Najbolj očiten znak, da je koda generirana, je napačna uporaba kompleksnejših objektov znotraj kode, kot so naprednejši algoritmi ali API-ji.
+Preučili smo tudi tehniko »Proti ognju se boriš z ognjem.«, saj bomo uporabljali prirejen veliki jezikovni model za razpoznavanje generirane programske kode, ki sama temelji na naučenih velikih jezikovnih modelih. To strategijo smo zaznali v naslednjem sorodnem delu »Fighting Fire with Fire: Can ChatGPT Detect AI-generated Text?« \cite{bhattacharjee2024fighting}, ki zastavi vprašanje, ali je ChatGPT sposoben prepoznati lastno kodo. Takšno tehniko bi lahko uporabili s katerokoli umetno inteligenco, vendar znotraj tega članka so se avtorji osredotočili ekskluzivno na ChatGPT. Raziskave v okviru tega članka so potrdile, da ChatGPT je sposoben prepoznati lastno kodo, kar nakazuje, da je še sposoben ločiti človeško programsko kodo od generirane. Pri preučevanju tega članka se nam je porodila ideja za nadaljevanje tega eksperimenta, pri čemer bi preizkušali ali so različne umetne inteligence sposobne prepoznati tuje generirane programske kode (npr. ali je ChatGPT sposoben prepoznati delo Gemini)\cite{rane2024gemini}.
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{references.bib}
+
+\end{document}

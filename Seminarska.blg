@@ -1,0 +1,60 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: Seminarska.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: IEEEtran.bst
+Reallocating 'name_of_file' (item size: 1) to 15 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Reallocating 'wiz_functions' (item size: 4) to 6000 items.
+Reallocating 'singl_function' (item size: 4) to 100 items.
+Database file #1: references.bib
+-- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+Warning--empty journal in lee2023rlaif
+
+Done.
+You've used 11 entries,
+            4087 wiz_defined-function locations,
+            874 strings with 9453 characters,
+and the built_in function-call counts, 6539 in all, are:
+= -- 488
+> -- 223
+< -- 27
++ -- 110
+- -- 49
+* -- 318
+:= -- 1050
+add.period$ -- 22
+call.type$ -- 11
+change.case$ -- 11
+chr.to.int$ -- 54
+cite$ -- 12
+duplicate$ -- 508
+empty$ -- 519
+format.name$ -- 58
+if$ -- 1469
+int.to.chr$ -- 0
+int.to.str$ -- 11
+missing$ -- 104
+newline$ -- 56
+num.names$ -- 11
+pop$ -- 270
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 2
+skip$ -- 483
+stack$ -- 0
+substring$ -- 137
+swap$ -- 356
+text.length$ -- 9
+text.prefix$ -- 0
+top$ -- 5
+type$ -- 11
+warning$ -- 1
+while$ -- 23
+width$ -- 13
+write$ -- 117
+(There was 1 warning)
