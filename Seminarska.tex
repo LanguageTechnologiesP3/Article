@@ -95,7 +95,7 @@ S tem delom želimo prispevati k razumevanju, kako zanesljivo lahko ločimo umet
 Raziskave na področju prepoznavanja umetno generirane kode so v porastu, saj postaja umetna inteligenca čedalje bolj vpeta v avtomatsko generiranje programske kode. Osrednji izziv teh raziskav je razviti zanesljive metode, ki lahko zanesljivo razločijo med kodo, ki jo je napisal človek, in tisto, ki jo je ustvaril jezikovni model, kot je v našem primeru ChatGPT. 
 Preučili smo tudi možnosti, da bi s pomočjo umetne inteligence zaznavali generirano programsko kodo, saj v sklopu našega dela želimo s pomočjo \acrshort{LLM} zaznavati kodo, ki je bila generirana s pomočjo umetne inteligence, ki sama temelji na \acrshort{LLM}. To strategijo smo raziskali v članku Fighting fire with fire: can ChatGPT detect AI-generated text? \cite{bhattacharjee2024fighting}.
 
-\subsection{Is This You, LLM?}
+\subsection{Ali si to ti, LLM?}
 \subsubsection{Prepoznavanje ChatGPT-generirane kode}
 Ena izmed osrednjih referenc za naše delo je članek ChatGPT Code Detection: Techniques for Uncovering the Source of Code \cite{oedingen2024chatgpt}, kjer avtorji predstavljajo različne pristope k detekciji izvora kode. Njihova metodologija temelji na raznolikem naboru predstavitev kode — od klasičnih pristopov, kot je termin frekvenca–inverzna frekvenca dokumenta (\acrshort{TF-IDF}), do naprednejših semantičnih vektorjev, kot je OpenAI ADA embeddings \cite{goel2024using}. Te vektorske reprezentacije nato uporabijo kot vhod za različne klasifikatorje.
 
@@ -177,6 +177,8 @@ Za vsako kombinacijo predstavitve in modela smo izvedli več ponovitev (5-kratno
 \subsection{Rezultati}
 Rezultati so pokazali, da je mogoče tudi z omejenimi računalniškimi viri doseči primerljive uspešnosti kot v originalnem članku. Najuspešnejše kombinacije smo dosegli z uporabo \acrshort{TF-IDF} in Ada embeddingov, skupaj z naprednimi klasifikatorji, kot sta XGBoost in \acrshort{DNN}.
 
+Iz sledečih tabel rezultatov, lahko razberemo, da je ponovitev eksperimenta pokazala zmanjšanje natančnosti v primerjavi z izvirno implementacijo. Prav tako smo zaznali povečanje standardnega odklona med posameznimi preizkusi, kar nakazuje na večjo nestabilnost modela. Ti rezultati kažejo, da kljub omejitvam strojne opreme model ohranja funkcionalnost zaznavanja generirane kode, vendar je manj zanesljiv in občutljivejši na spremembe v podatkih.
+
 Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 \begin{table}[h!]
 	\centering
@@ -197,7 +199,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		\hline
 		OPCT & 84.12±0.60 & 80.89±1.95 &  89.52±2.37 & 84.94±0.43 & 89.60±0.81\\
 		\hline
-		RF & 88.10±0.40 &  87.29±0.41 & 89.19±0.66 & 88.23±0.41 & 95.34±0.22\\
+		\textbf{RF} & \textbf{88.10±0.40} &  \textbf{87.29±0.41} & \textbf{89.19±0.66} & \textbf{88.23±0.41} & \textbf{95.34±0.22}\\
 		\hline
 		XGB & 88.48±0.26 & 87.39±0.46 & 89.93±0.42 & 88.64±0.24 & 95.59±0.20\\
 		\hline
@@ -215,7 +217,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		\hline
 		OPCT & 73.63±1.50 & 69.81±3.70 & 84.38±4.88 & 76.18±0.85 & 80.78±1.76\\
 		\hline
-		RF & 80.50±0.43 & 81.83±0.49 & 78.42±0.69 & 80.09±0.47 & 88.86±0.30\\
+		\textbf{RF} & \textbf{80.50±0.43} & \textbf{81.83±0.49} & \textbf{78.42±0.69} & \textbf{80.09±0.47} & \textbf{88.86±0.30}\\
 		\hline
 		XGB &  80.29±0.54 & 80.57±0.62 & 79.84±0.69 & 80.20±0.55 & 88.65±0.35\\
 		\hline
@@ -235,7 +237,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		DT &  80.82±0.50 & 80.63 ±0.55 &
 		81.46 ±0.67 & 79.83±1.03 & 80.82±0.50\\
 		\hline
-		DNN & 97.79±0.36 & 97.40±0.77 & 98.22±0.60 & 97.80±0.35 & 99.76±0.05\\
+		\textbf{DNN} & \textbf{97.79±0.36} & \textbf{97.40±0.77} & \textbf{98.22±0.60} & \textbf{97.80±0.35} & \textbf{99.76±0.05}\\
 		\hline
 		GMM & 92.71±0.39 & 95.10±0.48 & 90.06±0.66 & 92.51±0.42 & 97.37±0.21\\
 		\hline
@@ -254,7 +256,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		\hline
 		DT & 79.92±0.61 & 80.72±0.39 & 78.61±1.18 & 79.65±0.73 & 79.92±0.61\\
 		\hline
-		DNN & 97.95±0.25 & 97.86±0.7 & 98.06±0.67 & 97.95±0.25 & 99.79±0.04\\
+		\textbf{DNN} & \textbf{97.95±0.25} & \textbf{97.86±0.7} & \textbf{98.06±0.67} & \textbf{97.95±0.25} & \textbf{99.79±0.04}\\
 		\hline
 		GMM & 93.29±0.43 & 96.05±0.33 & 90.31±0.95 & 93.09±0.47 & 97.84±0.2\\
 		\hline
@@ -292,7 +294,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		\hline
 		RF &  98.04±0.11 & 98.04±0.11 & 97.77±0.18 & 98.31±0.23 & 99.72±0.05\\
 		\hline
-		XGB &  8.28±0.09 & 97.87±0.15 & 98.70±0.22 & 98.28±0.09 & 99.84±0.02\\
+		\textbf{XGB} &  \textbf{98.28±0.09} & \textbf{97.87±0.15} & \textbf{98.70±0.22} & \textbf{98.28±0.09} & \textbf{99.84±0.02}\\
 		\hline
 		\multicolumn{6}{c}{\textbf{TF-IDF - rekreacija}}\\
 		\hline
@@ -310,7 +312,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		\hline
 		RF & 98.07±0.16 & 97.62±0.21 & 98.54±0.26 & 98.07±0.16 & 99.74±0.05\\
 		\hline
-		XGB & 98.34±0.2 & 97.93±0.26 & 98.77±0.3 & 98.34±0.2 & 99.87±0.03\\
+		\textbf{XGB} & \textbf{98.34±0.2} & \textbf{97.93±0.26} & \textbf{98.77±0.3} & \textbf{98.34±0.2} & \textbf{99.87±0.03}\\
 		\hline
 	\end{tabular}
 	\caption{Primerjava - TF-IDF}
@@ -321,7 +323,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 \section{Lastna implementacija}
 Za detekcijo generirane programske kode smo implementirali metodo, ki temelji na analizi različnih komponent programske kode z uporabo znakovnih in sintaktičnih n-gramov. Ključna predpostavka našega pristopa je, da so generirane in človeško napisane kode ločljive na osnovi statističnih vzorcev v treh komponentah:
 \begin{itemize}
-	\item imena spremenljivk,
+	\item imena spremenljivk, funkcij in razredov,
 	\item komentarji ter
 	\item sintaktična struktura kode.
 \end{itemize}
@@ -356,14 +358,13 @@ Vhodni korpusi se razdelijo na dva referenčna profila:
 \subsection{Klasifikacija z metodo primerjave profilov}
 Za vsak nov primer programa izračunamo n-gram profil in ga primerjamo z obema referenčnima profiloma. Uporabimo rangirano razdaljo (Rank-biased Overlap oz. matriko podobnosti), ki meri, koliko so n-grami na podobnih pozicijah v obeh seznamih.
 
-Za vsako komponento (komentarji, imena, sintaktičnih komponent) dobimo odločitev, ali je primer bolj podoben človeškemu ali generiranemu profilu. Uporabimo večinsko glasovanje (2 od 3 komponent), da določimo končno klasifikacijo.
+Za vsako komponento (komentarji, imena, sintaktičnih komponent) dobimo odločitev, ali je primer bolj podoben človeškemu ali generiranemu profilu. Uporabimo večinsko glasovanje (2 od 3 komponent), da določimo končno klasifikacijo. Ko preverimo podamo še v nevronsko mrežo, ki se poskuša naučiti koliko kateri model doprinese h končni rešitvi.
 Zaradi slabe prisotnosti komentarjev v učnem korpuso, samo cca. 10\%, so ti pogosto bili manjšinski "glas" pri odločitvenemu modelu.
 
 \subsection{Rezultati in analiza}
-Rezultati klasifikacije so pokazali nižjo natančnost, kot smo sprva pričakovali, vendar se je še gibala v ranku sprejemljivosti. Glavni razlog za to je verjetno izguba informacij pri sintaktični tokenizaciji, kjer se odstrani kontekst in struktura višjega reda.
-Manjša diskriminativna moč n-gramov nad imeni spremenljivk in komentarji, kjer razlike med generirano in človeško kodo niso tako izrazite.
+Rezultati klasifikacije so pokazali nižjo natančnost, kot smo sprva pričakovali, vendar se je še gibala v rangu sprejemljivosti. Glavna razloga za to sta verjetno izguba informacij pri sintaktični tokenizaciji, kjer se odstrani kontekst in struktura višjega reda ter manjša diskriminativna moč n-gramov nad imeni spremenljivk in komentarji, kjer razlike med generirano in človeško kodo niso tako izrazite.
 
-Kljub izgubi natančnosti napovedovanja vira testne programske kode, je prednost naše implementacije gromozanska optimizacija učinkovitosti in časa učenja, čas izvajanja procesa profiliranja in klasifikacije smo znižali iz več kot ur na le nekaj minut, odvisno od uporabljene strojne opreme.
+Kljub izgubi natančnosti napovedovanja vira testne programske kode, je prednost naše implementacije optimizacija učinkovitosti in časa učenja, čas izvajanja procesa profiliranja in klasifikacije smo znižali iz več kot ur na le nekaj minut, odvisno od uporabljene strojne opreme.
 Kar smo dosegli z racionalizacijo podatkovne obdelave, zmanjšanjem števila n-gramov in uporabo hitrejših podatkovnih struktur.
 
 \begin{table}[h!]
@@ -372,9 +373,9 @@ Kar smo dosegli z racionalizacijo podatkovne obdelave, zmanjšanjem števila n-g
 	\begin{tabular}{|c|c|c|c|}
 		\multicolumn{4}{c}{predprocesirano}\\
 		\hline
-		& \multicolumn{3}{c}{\textbf{Število n-gramov}}\\
+		& \multicolumn{3}{c}{\textbf{dolžina n-gramov}}\\
 		\hline
-		\textbf{Pogosti n-grami} & 3 & 4 & 5\\
+		\textbf{število n-gramov} & 3 & 4 & 5\\
 		\hline
 		\multirow{2}{4em}{300} & Accuracy: 0.7147 & Accuracy: 0.7540 & Accuracy: 0.5004\\
 		& Loss: 0.5451 & Loss: 0.5254 & Loss: 0.6851\\
@@ -395,9 +396,9 @@ Kar smo dosegli z racionalizacijo podatkovne obdelave, zmanjšanjem števila n-g
 	\begin{tabular}{|c|c|c|c|}
 		\multicolumn{4}{c}{brez predprocesiranja}\\
 		\hline
-		& \multicolumn{3}{c}{\textbf{Število n-gramov}}\\
+		& \multicolumn{3}{c}{\textbf{dolžina n-gramov}}\\
 		\hline
-		\textbf{Pogosti n-grami} & 3 & 4 & 5\\
+		\textbf{število n-gramov} & 3 & 4 & 5\\
 		\hline
 		\multirow{2}{4em}{300} & Accuracy: 0.7303 & Accuracy: 0.7426 & Accuracy: 0.7044\\
 		& Loss: 0.5228 & Loss: 0.5272 & Loss: 0.6445\\
