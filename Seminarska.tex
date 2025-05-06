@@ -330,16 +330,13 @@ Za detekcijo generirane programske kode smo implementirali metodo, ki temelji na
 Po analizi sorodnih člankov, zlasti Distinguishing LLM-generated from Human-written Code by Contrastive Learning \cite{xu2024distinguishing}, smo ugotovili, da ti trije elementi najpogosteje odražajo stil pisanja in s tem tudi razlike med človeškim in avtomatsko generiranim programiranjem.
 \subsection{Potek analize}
 \subsubsection{Tokenizacija in predobdelava}
-Vhodno programsko kodo najprej razdelimo na tri semantične enote:
+Nad vhodnim primerom izvedemo sintaktično tokenizacijo, s katero izluščimo tri vrste podatkov:
 \begin{enumerate}
-	\item Komentarji se izločijo z uporabo regularnih izrazov, pri čemer ločimo enovrstične (//) in večvrstične (/* */) komentarje.
-	\item Imena spremenljivk se izločijo na osnovi sintaktične analize, pri čemer uporabimo metode za prepoznavo imen v definicijah (npr. int count = 0;) in pri klicih funkcij.
-	\item Ostala sintaksa (ključno besedišče, operatorji, struktura ukazov) se ohrani ločeno od vsebine komentarjev in spremenljivk.
+	\item zaporedje števil (tokenov), ki predstavlja sintaktično strukturo kode,
+	\item seznam imen spremenljivk, funkcij in razredov,
+	\item seznam komentarjev.
 \end{enumerate}
-Sledi normalizacija oz. predprocesiranje komponent.
-Vsa imena spremenljivk se pretvorijo v standardizirano obliko (npr. ločimo med snake\_case, camelCase itd.).
-Komentarji se očistijo odvečnih znakov in se ohranijo kot tekstovni niz za znakovno analizo.
-Kodo tokeniziramo v sintaktične enote (ključe besede, ločila, operatorje), pri čemer zavržemo dejanske identifikatorje.
+Pri predprocesiranju imen in komentarjev črke v nizih pretvorimo na male, skrajšamo zaporedja "praznih" znakov ter odstranimo vse ostale nečrkovne znake.
 
 \subsection{Generiranje profilov in značilk}
 Za vsako izmed komponent (komentarji, imena spremenljivk, sintaktične komponente) generiramo n-gram profile:
@@ -359,7 +356,7 @@ Vhodni korpusi se razdelijo na dva referenčna profila:
 Za vsak nov primer programa izračunamo n-gram profil in ga primerjamo z obema referenčnima profiloma. Uporabimo rangirano razdaljo (Rank-biased Overlap oz. matriko podobnosti), ki meri, koliko so n-grami na podobnih pozicijah v obeh seznamih.
 
 Za vsako komponento (komentarji, imena, sintaktičnih komponent) dobimo odločitev, ali je primer bolj podoben človeškemu ali generiranemu profilu. Uporabimo večinsko glasovanje (2 od 3 komponent), da določimo končno klasifikacijo. Ko preverimo podamo še v nevronsko mrežo, ki se poskuša naučiti koliko kateri model doprinese h končni rešitvi.
-Zaradi slabe prisotnosti komentarjev v učnem korpuso, samo cca. 10\%, so ti pogosto bili manjšinski "glas" pri odločitvenemu modelu.
+Zaradi slabe prisotnosti komentarjev v učnem korpusu, samo cca. 10\%, so ti pogosto bili manjšinski "glas" pri odločitvenemu modelu.
 
 \subsection{Rezultati in analiza}
 Rezultati klasifikacije so pokazali nižjo natančnost, kot smo sprva pričakovali, vendar se je še gibala v rangu sprejemljivosti. Glavna razloga za to sta verjetno izguba informacij pri sintaktični tokenizaciji, kjer se odstrani kontekst in struktura višjega reda ter manjša diskriminativna moč n-gramov nad imeni spremenljivk in komentarji, kjer razlike med generirano in človeško kodo niso tako izrazite.
@@ -426,7 +423,7 @@ Kljub uspešni implementaciji in optimizaciji detekcije generirane programske ko
 \begin{itemize}
 	\item Uporaba znakovnih ali tokeniziranih n-gramov ne zajame globljega semantičnega pomena kode. Dve zelo različni implementaciji lahko imata podobne n-gram vzorce, zlasti pri pogosto uporabljenih strukturah (npr. for, if, return).
 	\item Pri komentarjih in imenih spremenljivk se pogosto pojavljajo podobne fraze ne glede na izvor (npr. „initialize variable“, „set flag“), kar zmanjšuje razlikovalno moč.
-	\item Sintaktična tokenizacija pogosto zanemari konkretne izraze, kot so imena funkcij, konstante ali določene strukture, ki bi sicer lahko nosile pomembne stilne značilnosti pisca.
+	\item V tokeniziranem nizu ni mogoče razločiti kam je postavljeno katero ime. To mogoče dodatno zabriše slogovne značilnosti pisca.
 	\item To vodi v izgubo informacij, zaradi katere je model manj občutljiv na drobne slogovne razlike, ki so sicer lahko značilne za generirane vsebine.
 	\item Ker se referenčni profili učijo iz konkretnega korpusa, metoda ni popolnoma prenosljiva na drugačne programske jezike ali domene brez ponovnega učenja.
 	\item Če je učna množica premajhna ali neuravnotežena, to vodi v neuravnotežene profile, kar zmanjšuje učinkovitost pri klasifikaciji novih primerov.
