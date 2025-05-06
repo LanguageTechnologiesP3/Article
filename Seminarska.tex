@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{glossaries}
 \usepackage{tabularx}
+\usepackage{multirow}
 
 \makeglossaries
 \newacronym{LLM}{LLM}{Large Language Model}
@@ -227,7 +228,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 	\centering
 	\small
 	\begin{tabular}{|c|c c c c c|}
-		\multicolumn{6}{c}{\textbf{Embeding (ADA) - original}}\\
+		\multicolumn{6}{c}{\textbf{ADA - original}}\\
 		\hline
 		& Accuracy & Precision & Recall & F1 & AUC\\
 		\hline
@@ -247,7 +248,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		\hline
 		XGB &  95.05±0.23 & 95.09±0.22 & 94.30±0.42 & 95.89±0.30 & 98.94±0.09\\
 		\hline
-		\multicolumn{6}{c}{\textbf{Embeding (ADA) - rekreacija}}\\
+		\multicolumn{6}{c}{\textbf{ADA - rekreacija}}\\
 		\hline
 		& Accuracy & Precision & Recall & F1 & AUC\\
 		\hline
@@ -266,7 +267,7 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 		XGB & 94.66±0.36 & 94.35±0.47 & 95.0±0.39 & 94.68±0.35 & 98.8±0.143\\
 		\hline
 	\end{tabular}
-	\caption{Primerjava - Embeding (ADA)}
+	\caption{Primerjava - ADA}
 	\label{tab:sample}
 \end{table}
 
@@ -315,9 +316,135 @@ Izpostavimo lahko naslednje najpomembnejše rezultate:\\
 	\caption{Primerjava - TF-IDF}
 	\label{tab:sample}
 \end{table}
-
 \newpage
-\section{Kratice}
+
+\section{Lastna implementacija}
+Za detekcijo generirane programske kode smo implementirali metodo, ki temelji na analizi različnih komponent programske kode z uporabo znakovnih in sintaktičnih n-gramov. Ključna predpostavka našega pristopa je, da so generirane in človeško napisane kode ločljive na osnovi statističnih vzorcev v treh komponentah:
+\begin{itemize}
+	\item imena spremenljivk,
+	\item komentarji ter
+	\item sintaktična struktura kode.
+\end{itemize}
+Po analizi sorodnih člankov, zlasti Distinguishing LLM-generated from Human-written Code by Contrastive Learning \cite{xu2024distinguishing}, smo ugotovili, da ti trije elementi najpogosteje odražajo stil pisanja in s tem tudi razlike med človeškim in avtomatsko generiranim programiranjem.
+\subsection{Potek analize}
+\subsubsection{Tokenizacija in predobdelava}
+Vhodno programsko kodo najprej razdelimo na tri semantične enote:
+\begin{enumerate}
+	\item Komentarji se izločijo z uporabo regularnih izrazov, pri čemer ločimo enovrstične (//) in večvrstične (/* */) komentarje.
+	\item Imena spremenljivk se izločijo na osnovi sintaktične analize, pri čemer uporabimo metode za prepoznavo imen v definicijah (npr. int count = 0;) in pri klicih funkcij.
+	\item Ostala sintaksa (ključno besedišče, operatorji, struktura ukazov) se ohrani ločeno od vsebine komentarjev in spremenljivk.
+\end{enumerate}
+Sledi normalizacija oz. predprocesiranje komponent.
+Vsa imena spremenljivk se pretvorijo v standardizirano obliko (npr. ločimo med snake\_case, camelCase itd.).
+Komentarji se očistijo odvečnih znakov in se ohranijo kot tekstovni niz za znakovno analizo.
+Kodo tokeniziramo v sintaktične enote (ključe besede, ločila, operatorje), pri čemer zavržemo dejanske identifikatorje.
+
+\subsection{Generiranje profilov in značilk}
+Za vsako izmed komponent (komentarji, imena spremenljivk, sintaktične komponente) generiramo n-gram profile:
+\begin{itemize}
+	\item Znakovni n-grami (n = 3 ali 4): uporabljeni za komentarje in imena spremenljivk.
+	\item Tokenizirani n-grami (n = 2 ali 3): uporabljeni za sintakso, kjer analiziramo zaporedja ključnih besed in operatorjev.
+\end{itemize}
+Izračunamo frekvenčne profile in jih razvrstimo po frekvenci pojavljanja. Profil je predstavljen kot urejen seznam najpogostejših n-gramov.
+
+Vhodni korpusi se razdelijo na dva referenčna profila:
+\begin{itemize}
+	\item enega za programsko kodo generirano z umetno inteligenco
+	\item drugega za človeško napisano programsko kodo.
+\end{itemize}
+
+\subsection{Klasifikacija z metodo primerjave profilov}
+Za vsak nov primer programa izračunamo n-gram profil in ga primerjamo z obema referenčnima profiloma. Uporabimo rangirano razdaljo (Rank-biased Overlap oz. matriko podobnosti), ki meri, koliko so n-grami na podobnih pozicijah v obeh seznamih.
+
+Za vsako komponento (komentarji, imena, sintaktičnih komponent) dobimo odločitev, ali je primer bolj podoben človeškemu ali generiranemu profilu. Uporabimo večinsko glasovanje (2 od 3 komponent), da določimo končno klasifikacijo.
+Zaradi slabe prisotnosti komentarjev v učnem korpuso, samo cca. 10\%, so ti pogosto bili manjšinski "glas" pri odločitvenemu modelu.
+
+\subsection{Rezultati in analiza}
+Rezultati klasifikacije so pokazali nižjo natančnost, kot smo sprva pričakovali, vendar se je še gibala v ranku sprejemljivosti. Glavni razlog za to je verjetno izguba informacij pri sintaktični tokenizaciji, kjer se odstrani kontekst in struktura višjega reda.
+Manjša diskriminativna moč n-gramov nad imeni spremenljivk in komentarji, kjer razlike med generirano in človeško kodo niso tako izrazite.
+
+Kljub izgubi natančnosti napovedovanja vira testne programske kode, je prednost naše implementacije gromozanska optimizacija učinkovitosti in časa učenja, čas izvajanja procesa profiliranja in klasifikacije smo znižali iz več kot ur na le nekaj minut, odvisno od uporabljene strojne opreme.
+Kar smo dosegli z racionalizacijo podatkovne obdelave, zmanjšanjem števila n-gramov in uporabo hitrejših podatkovnih struktur.
+
+\begin{table}[h!]
+	\centering
+	\small
+	\begin{tabular}{|c|c|c|c|}
+		\multicolumn{4}{c}{predprocesirano}\\
+		\hline
+		& \multicolumn{3}{c}{\textbf{Število n-gramov}}\\
+		\hline
+		\textbf{Pogosti n-grami} & 3 & 4 & 5\\
+		\hline
+		\multirow{2}{4em}{300} & Accuracy: 0.7147 & Accuracy: 0.7540 & Accuracy: 0.5004\\
+		& Loss: 0.5451 & Loss: 0.5254 & Loss: 0.6851\\
+		\hline
+		\multirow{2}{4em}{500} & Accuracy: 0.6768 & Accuracy: 0.7388 & Accuracy: 0.7353\\
+		& Loss: 0.5637 & Loss: 0.5126 & Loss: 0.6675\\
+		\hline
+		\multirow{2}{4em}{700} & Accuracy: 0.6683 & Accuracy: 0.7336 & Accuracy: 0.7350\\
+		& Loss: 0.6072 & Loss: 0.5006 & Loss: 0.5225\\
+		\hline
+	\end{tabular}
+	\caption{Rezultati - predprocesirani vhodni podatki}
+	\label{tab:sample}
+\end{table}
+\begin{table}[h!]
+	\centering
+	\small
+	\begin{tabular}{|c|c|c|c|}
+		\multicolumn{4}{c}{brez predprocesiranja}\\
+		\hline
+		& \multicolumn{3}{c}{\textbf{Število n-gramov}}\\
+		\hline
+		\textbf{Pogosti n-grami} & 3 & 4 & 5\\
+		\hline
+		\multirow{2}{4em}{300} & Accuracy: 0.7303 & Accuracy: 0.7426 & Accuracy: 0.7044\\
+		& Loss: 0.5228 & Loss: 0.5272 & Loss: 0.6445\\
+		\hline
+		\multirow{2}{4em}{500} & Accuracy: 0.6920 & Accuracy: 0.6477 & Accuracy: 0.7142\\
+		& Loss: 0.5460 & Loss: 0.5885 & Loss: 0.6650\\
+		\hline
+		\multirow{2}{4em}{700} & Accuracy: 0.6818 & Accuracy: 0.7076 & Accuracy: 0.7182\\
+		& Loss: 0.5993 & Loss: 0.5579 & Loss: 0.5457\\
+		\hline
+	\end{tabular}
+	\caption{Rezultati - brez predprocesiranja vhodnih podatkov}
+	\label{tab:sample}
+\end{table}
+
+\subsection{Uporabljena orodja in podatki}
+\begin{itemize}
+	\item Koda je implementirana v Pythonu.
+	\item Uporabljeni moduli: collections.Counter, re za regularne izraze, difflib za izračun podobnosti.
+	\item Učni in testni korpus je identičen tistemu iz izvirne naloge, kar omogoča neposredno primerjavo.
+\end{itemize}
+
+\subsection{Omejitve in pomankljivosti}
+Kljub uspešni implementaciji in optimizaciji detekcije generirane programske kode ima naš pristop več pomembnih omejitev, ki vplivajo na natančnost in splošno robustnost metode:
+\begin{itemize}
+	\item Uporaba znakovnih ali tokeniziranih n-gramov ne zajame globljega semantičnega pomena kode. Dve zelo različni implementaciji lahko imata podobne n-gram vzorce, zlasti pri pogosto uporabljenih strukturah (npr. for, if, return).
+	\item Pri komentarjih in imenih spremenljivk se pogosto pojavljajo podobne fraze ne glede na izvor (npr. „initialize variable“, „set flag“), kar zmanjšuje razlikovalno moč.
+	\item Sintaktična tokenizacija pogosto zanemari konkretne izraze, kot so imena funkcij, konstante ali določene strukture, ki bi sicer lahko nosile pomembne stilne značilnosti pisca.
+	\item To vodi v izgubo informacij, zaradi katere je model manj občutljiv na drobne slogovne razlike, ki so sicer lahko značilne za generirane vsebine.
+	\item Ker se referenčni profili učijo iz konkretnega korpusa, metoda ni popolnoma prenosljiva na drugačne programske jezike ali domene brez ponovnega učenja.
+	\item Če je učna množica premajhna ali neuravnotežena, to vodi v neuravnotežene profile, kar zmanjšuje učinkovitost pri klasifikaciji novih primerov.
+	\item Sodobni modeli, kot je GPT-4 ali Claude, generirajo vedno bolj naravno in raznoliko kodo. To pomeni, da razlike med človeško in generirano kodo postajajo manj izrazite, zlasti na nivoju sintakse in komentarjev.
+	\item Naša metoda tako postaja manj učinkovita pri novejših modelih, saj so ti sposobni posnemati slog in strukturo človeškega pisanja.
+	\item Metoda deluje popolnoma lokalno na posameznih datotekah ali fragmentih kode, brez razumevanja širšega konteksta (npr. organizacije projektne strukture, povezav med datotekami).
+	\item Detekcija generiranosti bi lahko bila učinkovitejša, če bi upoštevali globalne vzorce, kot so struktura imenovanj skozi celoten projekt, dolžina funkcij, konsistentnost komentarjev ipd.
+\end{itemize}
+
+\section{Zaključek}
+V našem delu smo se osredotočili na izboljšanje detekcije generirane programske kode s pomočjo n-gram analiz in ločene obravnave posameznih komponent programske kode – spremenljivk, komentarjev in sintakse. Uporabili smo obstoječi učni model, priložen učni korpus, ter izvedli pomembne spremembe na področju predobdelave in modeliranja značilk. Naš pristop temelji na predpostavki, ki smo jo zasledili v sledečih člankih \cite{oedingen2024chatgpt, xu2024distinguishing, gurioli2024you}, da so ravno ti trije elementi – še posebej poimenovanja spremenljivk in način pisanja komentarjev – ključni pokazatelji generiranosti.
+
+Čeprav rezultati kažejo nekoliko nižjo natančnost v primerjavi z osnovnim modelom, kar pripisujemo izgubi informacij pri sintaktični tokenizaciji in omejitvam n-gramov, smo dosegli znatno izboljšavo na področju učinkovitosti učenja. Čas učenja modela smo zmanjšali iz več kot devetih ur na le nekaj minut, kar pomeni veliko prednost pri eksperimentiranju in nadaljnjem razvoju.
+
+Naš model smo trenirali na istem korpusu kot izvirni sistem, kar zagotavlja primerljivost rezultatov. Celoten pristop omogoča boljšo modularnost in možnost testiranja različnih kombinacij vhodnih podatkov (velikost n-gramov, števila najpogostejših n-gramov...), kar bi v prihodnje lahko še izboljšali z uvedbo dodatnih značilk ali uporabo bolj sofisticiranih modelov.
+
+Naša implementacija kljub temu dokazuje, da so enostavni pristopi še vedno uporabni pri detekciji generirane kode, še posebej, ko so omejitve časa učenja ali razpoložljivih virov pomemben dejavnik.
+
+\section*{Kratice}
 \begin{itemize}
 	\item \acrfull{LLM}
 	\item \acrfull{TF-IDF}

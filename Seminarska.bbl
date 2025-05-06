@@ -69,4 +69,9 @@ R.~Aperdannier, M.~Koeppel, T.~Unger, S.~Schacht, and S.~K. Barkur,
   \emph{Future of Information and Communication Conference}.\hskip 1em plus
   0.5em minus 0.4em\relax Springer, 2024, pp. 526--536.
 
+\bibitem{gurioli2024you}
+A.~Gurioli, M.~Gabbrielli, and S.~Zacchiroli, ``Is this you, llm? recognizing
+  ai-written programs with multilingual code stylometry,'' \emph{arXiv preprint
+  arXiv:2412.14611}, 2024.
+
 \end{thebibliography}
