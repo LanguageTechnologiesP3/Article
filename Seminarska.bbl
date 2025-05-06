@@ -21,6 +21,11 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
+\bibitem{oedingen2024chatgpt}
+M.~Oedingen, R.~C. Engelhardt, R.~Denz, M.~Hammer, and W.~Konen, ``Chatgpt code
+  detection: Techniques for uncovering the source of code,'' \emph{arXiv
+  preprint arXiv:2405.15512}, 2024.
+
 \bibitem{naveed2023comprehensive}
 H.~Naveed, A.~U. Khan, S.~Qiu, M.~Saqib, S.~Anwar, M.~Usman, N.~Akhtar,
   N.~Barnes, and A.~Mian, ``A comprehensive overview of large language
@@ -29,19 +34,24 @@ H.~Naveed, A.~U. Khan, S.~Qiu, M.~Saqib, S.~Anwar, M.~Usman, N.~Akhtar,
 \bibitem{sakib2023chatgpt}
 M.~S.~I. Sakib, ``What is chatgpt,'' \emph{ResearchGate}, 2023.
 
-\bibitem{lee2023rlaif}
-H.~Lee, S.~Phatale, H.~Mansoor, K.~R. Lu, T.~Mesnard, J.~Ferret, C.~Bishop,
-  E.~Hall, V.~Carbune, and A.~Rastogi, ``Rlaif: Scaling reinforcement learning
-  from human feedback with ai feedback,'' 2023.
-
-\bibitem{zhao2023empirical}
-P.~Zhao, ``An empirical study on using codex for automated program repair,''
-  2023.
-
 \bibitem{cave2019hopes}
 S.~Cave and K.~Dihal, ``Hopes and fears for intelligent machines in fiction and
   reality,'' \emph{Nature machine intelligence}, vol.~1, no.~2, pp. 74--78,
   2019.
+
+\bibitem{bhattacharjee2024fighting}
+A.~Bhattacharjee and H.~Liu, ``Fighting fire with fire: can chatgpt detect
+  ai-generated text?'' \emph{ACM SIGKDD Explorations Newsletter}, vol.~25,
+  no.~2, pp. 14--21, 2024.
+
+\bibitem{goel2024using}
+R.~Goel, ``Using text embedding models as text classifiers with medical data,''
+  \emph{arXiv preprint arXiv:2402.16886}, 2024.
+
+\bibitem{yang2023diffusion}
+X.~Yang, D.~Zhou, J.~Feng, and X.~Wang, ``Diffusion probabilistic model made
+  slim,'' in \emph{Proceedings of the IEEE/CVF Conference on computer vision
+  and pattern recognition}, 2023, pp. 22\,552--22\,562.
 
 \bibitem{xu2024distinguishing}
 X.~Xu, C.~Ni, X.~Guo, S.~Liu, X.~Wang, K.~Liu, and X.~Yang, ``Distinguishing
@@ -53,24 +63,10 @@ D.~Guo, S.~Lu, N.~Duan, Y.~Wang, M.~Zhou, and J.~Yin, ``Unixcoder: Unified
   cross-modal pre-training for code representation,'' \emph{arXiv preprint
   arXiv:2203.03850}, 2022.
 
-\bibitem{oedingen2024chatgpt}
-M.~Oedingen, R.~C. Engelhardt, R.~Denz, M.~Hammer, and W.~Konen, ``Chatgpt code
-  detection: Techniques for uncovering the source of code,'' \emph{arXiv
-  preprint arXiv:2405.15512}, 2024.
-
-\bibitem{gurioli2024you}
-A.~Gurioli, M.~Gabbrielli, and S.~Zacchiroli, ``Is this you, llm? recognizing
-  ai-written programs with multilingual code stylometry,'' \emph{arXiv preprint
-  arXiv:2412.14611}, 2024.
-
-\bibitem{bhattacharjee2024fighting}
-A.~Bhattacharjee and H.~Liu, ``Fighting fire with fire: can chatgpt detect
-  ai-generated text?'' \emph{ACM SIGKDD Explorations Newsletter}, vol.~25,
-  no.~2, pp. 14--21, 2024.
-
-\bibitem{rane2024gemini}
-N.~Rane, S.~Choudhary, and J.~Rane, ``Gemini versus chatgpt: applications,
-  performance, architecture, capabilities, and implementation,'' \emph{Journal
-  of Applied Artificial Intelligence}, vol.~5, no.~1, pp. 69--93, 2024.
+\bibitem{aperdannier2024systematic}
+R.~Aperdannier, M.~Koeppel, T.~Unger, S.~Schacht, and S.~K. Barkur,
+  ``Systematic evaluation of different approaches on embedding search,'' in
+  \emph{Future of Information and Communication Conference}.\hskip 1em plus
+  0.5em minus 0.4em\relax Springer, 2024, pp. 526--536.
 
 \end{thebibliography}

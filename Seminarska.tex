@@ -1,6 +1,22 @@
 \documentclass[sigconf,nonacm]{acmart}
 \usepackage{natbib}
 \usepackage[utf8]{inputenc}
+\usepackage{glossaries}
+\usepackage{tabularx}
+
+\makeglossaries
+\newacronym{LLM}{LLM}{Large Language Model}
+\newacronym{TF-IDF}{TF-IDF}{Term Frequency–Inverse Document Frequency}
+\newacronym{SDDPM}{SDDPM}{Speckle Denoising Diffusion Probabilistic Models}
+\newacronym{DNN}{DNN}{Deep Neural Network}
+\newacronym{GB}{GB}{Giga Byte}
+\newacronym{RAM}{RAM}{Random Access Memory}
+\newacronym{LR}{LR}{Logistic regresion}
+\newacronym{DT}{DT}{Decision Tree}
+\newacronym{RF}{RF}{Random Forest}
+\newacronym{GMM}{GMM}{Gaussian Mixture Model}
+\newacronym{OPCT}{OPCT}{Optimal Cost-sensitive Pruned Tree}
+\newacronym{AUC}{AUC}{Area Under Curve}
 
 \AtBeginDocument{%
 	\providecommand\BibTeX{{%
@@ -11,7 +27,7 @@
 \usepackage{verbatim}
 \usepackage[linesnumbered, boxed, resetcount]{algorithm2e}
 %opening
-\title{\textbf{Razlikovanje LLM-generirane in človeško napisane kode s konservativnim učenjem }}
+\title{\textbf{Odkrivanje kode ChatGPT: Tehnike za odkrivanje vira kode}}
 
 \author{Alen Petek}
 \email{alen.petek2@student.um.si}
@@ -60,27 +76,265 @@
 \maketitle
 
 \section*{Povzetek}
-V svetu, ki postaja vedno bolj odvisen od tehnologije, so nastali mnogi napredki, med najbolj znamenite v zadnjih letih seveda spada razvoj umetne inteligence, kot so ChatGpt, ki velja za najbolj znanega, Gemini, Copilot, Claude, DeepSeek in mnogi drugi. Ta napredek je s sabo prinesel mnogo ugodnosti, saj so ljudje začeli umetno inteligenco uporabljati kot orodje, ki jim je pomagalo pri dnevnih opravilih. S časom so se ta orodja izboljšala, postala pametnejša in natančnejša. Kmalu niso bila več samo orodja, ampak so lahko preprosta dela in besedila ustvarjali sami.
-Turingov test je preizkus, ali se lahko robot ekvivalentno oziroma nerazločljivo obnaša kot človek. Razvoj umetne inteligence je doprinesel podobno vprašanje, ali lahko ločimo besedila, ki jih je ustvaril človek od besedil, ki jih je ustvarila umetna inteligenca.
-S sledečo nalogo, bomo poskušali z uporabo velikih jezikovnih modelov, značilnih karakteristik generirane programske kode in različnimi metodami razpoznavanje ločiti človeško ustvarjeno programsko kodo od tiste, ki jo je ustvarila umetna inteligenca.
+V tem delu smo analizirali možnosti samodejnega prepoznavanja kode, ustvarjene z jezikovnim modelom ChatGPT. Na osnovi odprtokodne rešitve smo rekonstruirali eksperiment, v katerem strojni učni model razvršča odseke programske kode glede na to, ali so bili ustvarjeni s strani človeka ali umetne inteligence. 
+Sledili smo metodologiji, predstavljeni v članku ChatGPT Code Detection: Techniques for Uncovering the Source of Code \cite{oedingen2024chatgpt}, in uporabili njihovo implementacijo za ponovno izvedbo ter evalvacijo klasifikacijskih modelov. 
+Cilj naloge je bil preveriti zanesljivost detekcije, ovrednotiti učinkovitost uporabljenih metod, razumeti njihove omejitve ter implementirati lastno rešitev in nadgradnjo obstoječe kode. Rezultati kažejo, da je z ustreznimi pristopi mogoče zaznati AI-generirano kodo z visoko natančnostjo, a obstajajo izzivi pri stilno izenačenih ali kompleksnejših primerih.
 
 \section*{Ključne besede}
-velik jezikovni model, umetna inteligenca, CodeGPTSensor, ChatGPT, konservativno učenje
+umetna inteligenca, generirana programska koda, prepoznavanje izvora, ChatGPT, strojno učenje, TF-IDF, ADA, embeddings
 
 \section{Uvod}
-Z razvojem velikih jezikovnih modelov (ang. Large Language Model - LLM) \cite{naveed2023comprehensive} se je kvaliteta strojno generirane vsebine, kot so besedila, dialog in celo programska koda, eksponentno izboljšala. Napredki v velikih jezikovnih modelih in umetni inteligenci (ang. Artificial Intelligence- AI) so v zadnjih letih prinesli veliko pozornosti in vzburili mnogo razprav o prihodnosti teh orodji znotraj industrije in akademije. Kot primer lahko vzamemo najbolj znano umetno inteligenco ChatGPT \cite{sakib2023chatgpt}, ki je zasnovan na principu okrepitvenega učenja od človeške interakcije (ang. Reinforcement Learning from Human Feedback - RLHF)\cite{lee2023rlaif}, kar dokazuje sposobnost umetne inteligence za razumevanja povpraševanj, pogovorov in podajanja pravilnih in natančnih odgovorov, v mnogih različnih panogah, vse od pisateljstva do medicine.
-Z razvojem umetno ustvarjenih del, se je prikazal problem, kako ločiti človeško ustvarjena dela od tistih, ki so ustvarjeni s pomočjo umetne inteligence. S tem vprašanjem so se začele mnoge raziskave v velike jezikovne modele, natančneje v možnosti generiranja programske kode, med katerimi je najbolj zanesljiv Codex \cite{zhao2023empirical}. Vendar kljub napredkom v generiranju programkse kode z velikimi jezikovnimi modeli raziskave kažejo, da večina ljudi, še posebej osebje v računalništvu, je skeptičnih o zanesljivosti modelov, določeni izražajo tudi strah. Kot primer lahko vzamemo spletno stran Stack Overflow, ki je prepovedala vse prispevke narejene z uporabo ChatGPT.
-S tem strahom so se začele raziskave o prepoznavi programske kode generirane z uporabo umetne inteligence, kjer so odkrili, da kljub dobro naučenih modelih, so se pojavili določeni vzorci v kodi generirani s pomočjo velikih jezikovnih modelov \cite{cave2019hopes}, kot so različne značilnosti, vključno s slogovnimi nedoslednostmi in napačno uporabo API-jev (aplikacijski programski vmesnik, ang. Aplication Program Interface).
-Med vsemi detektorji programske kode generirane z uporabo ChatGPT se je CodeGPTSensor\cite{xu2024distinguishing}, metoda, ki temelji na kontrastnem učnem ogrodju s semantičnim kodirnikom kode UniXcoder \cite{guo2022unixcoder}. UniXcoder je vnaprej pripravljen model, ki vključuje semantične in sintaksne informacije iz izvorne kode za podporo opravil, povezanih s programsko kodo. Za učenje različnih predstavitev kode za razlikovanje ChatGPT generirane kode od tiste, ki jo je napisal človek, uporablja kontrastno učno ogrodje za natančno nastavitev UniXcoderja, ki se je izkazal za enega izmed najbolj natančnih.
-V tej nalogi bomo preizkusili poustvariti rezultate natančnosti razpoznavanja umetno ustvarjene programske kode in celo izboljšati CodeGPTSensor s svojimi učnimi modeli, z namenom, da dosežemo še boljšo natančnost in konsistentnost prepoznavanja kode ustvarjene z umetno inteligenco od tiste, ki jo je ustvaril človek.
+Veliki jezikovni modeli (\acrshort{LLM})\cite{naveed2023comprehensive}, kot je ChatGPT, so v zadnjih letih postali izjemno zmogljivi pri generiranju naravnega jezika in s tem tudi programsko kodo\cite{sakib2023chatgpt}. Čeprav je osnovna funkcionalnost teh modelov zasnovana kot pomoč programerjem, se vse pogosteje uporabljajo tudi za avtomatsko generiranje celotnih rešitev programerskih nalog. Zaradi tega je prepoznavanje izvora kode – torej ali jo je napisal človek ali umetna inteligenca – postalo pomembno vprašanje na področjih izobraževanja, programerskih tekmovanj in celo v industrijskih okoljih\cite{cave2019hopes}.
+
+V tej nalogi preučujemo problem razločevanja med človeško in AI-generirano programsko kodo. Kot izhodišče uporabljamo raziskavo Marca Oedingena in sodelavcev \cite{oedingen2024chatgpt}, ki predlagajo metodologijo za klasifikacijo izvorne kode na podlagi vektorskih predstavitev (embeddings), uporabe kodnih značilnosti in nadzorovanega učenja. Ponovno smo implementirali in validirali njihove postopke na lastnem eksperimentalnem naboru ter preverili delovanje različnih klasifikatorjev, kot so XGBoost, Random Forest, \acrshort{DNN} in Gaussian Mixture Models, s kombinacijo klasičnih in kontekstualnih vektorjev, kot so TF-IDF, Word2Vec in OpenAI ADA.
+
+S tem delom želimo prispevati k razumevanju, kako zanesljivo lahko ločimo umetno generirano kodo od človeške, ter nadgraditi obstoječo rešitev z uporabo večih učnih modelov in težišč modelov.
 
 \section{Sorodni članki}
-Glede na to, da naša ideja temelji na optimizacije enega izmed najboljših metod za razpoznavanje med človeško in programsko kodo umetne inteligence \cite{oedingen2024chatgpt}, smo potrebovali referenco oziroma primerjavo z ostalimi, pogosteje uporabljenimi metodami, ki temeljijo na že definiranih velikimi jezikovnimi modeli in strategijah povezanih s takšnim načinom razpoznavanja.
-V članku »Is This You, LLM? Recognizing AI-written Programs with Multilingual Code Stylometry« \cite{gurioli2024you} smo preučili najbolj osnovne strategije prepoznavanja generirane. Med najpogostejše tehnike spada iskanje vzorcev v generirani kodi, saj se naučeni model drži določenih stilov generiranja kode. Najbolj očiten znak, da je koda generirana, je napačna uporaba kompleksnejših objektov znotraj kode, kot so naprednejši algoritmi ali API-ji.
-Preučili smo tudi tehniko »Proti ognju se boriš z ognjem.«, saj bomo uporabljali prirejen veliki jezikovni model za razpoznavanje generirane programske kode, ki sama temelji na naučenih velikih jezikovnih modelih. To strategijo smo zaznali v naslednjem sorodnem delu »Fighting Fire with Fire: Can ChatGPT Detect AI-generated Text?« \cite{bhattacharjee2024fighting}, ki zastavi vprašanje, ali je ChatGPT sposoben prepoznati lastno kodo. Takšno tehniko bi lahko uporabili s katerokoli umetno inteligenco, vendar znotraj tega članka so se avtorji osredotočili ekskluzivno na ChatGPT. Raziskave v okviru tega članka so potrdile, da ChatGPT je sposoben prepoznati lastno kodo, kar nakazuje, da je še sposoben ločiti človeško programsko kodo od generirane. Pri preučevanju tega članka se nam je porodila ideja za nadaljevanje tega eksperimenta, pri čemer bi preizkušali ali so različne umetne inteligence sposobne prepoznati tuje generirane programske kode (npr. ali je ChatGPT sposoben prepoznati delo Gemini)\cite{rane2024gemini}.
+Raziskave na področju prepoznavanja umetno generirane kode so v porastu, saj postaja umetna inteligenca čedalje bolj vpeta v avtomatsko generiranje programske kode. Osrednji izziv teh raziskav je razviti zanesljive metode, ki lahko zanesljivo razločijo med kodo, ki jo je napisal človek, in tisto, ki jo je ustvaril jezikovni model, kot je v našem primeru ChatGPT. 
+Preučili smo tudi možnosti, da bi s pomočjo umetne inteligence zaznavali generirano programsko kodo, saj v sklopu našega dela želimo s pomočjo \acrshort{LLM} zaznavati kodo, ki je bila generirana s pomočjo umetne inteligence, ki sama temelji na \acrshort{LLM}. To strategijo smo raziskali v članku Fighting fire with fire: can ChatGPT detect AI-generated text? \cite{bhattacharjee2024fighting}.
 
+\subsection{Is This You, LLM?}
+\subsubsection{Prepoznavanje ChatGPT-generirane kode}
+Ena izmed osrednjih referenc za naše delo je članek ChatGPT Code Detection: Techniques for Uncovering the Source of Code \cite{oedingen2024chatgpt}, kjer avtorji predstavljajo različne pristope k detekciji izvora kode. Njihova metodologija temelji na raznolikem naboru predstavitev kode — od klasičnih pristopov, kot je termin frekvenca–inverzna frekvenca dokumenta (\acrshort{TF-IDF}), do naprednejših semantičnih vektorjev, kot je OpenAI ADA embeddings \cite{goel2024using}. Te vektorske reprezentacije nato uporabijo kot vhod za različne klasifikatorje.
 
+Pomembna prednost njihovega pristopa je uporaba tako sintaktičnih kot semantičnih informacij o kodi. Ugotovili so, da kombinacija obeh vrst značilk močno poveča natančnost klasifikacije. Vendar pa rezultati kažejo tudi na meje teh tehnik — zlasti kadar je koda stilistično preurejena ali dopolnjena z ročnimi spremembami, se zanesljivost prepoznave zmanjša.
+
+\subsubsection{Vloga rekonstrukcije v strojno učnih modelih}
+Čeprav se osrednji članek ne osredotoča neposredno na rekonstrukcijo, pa je ta koncept ključnega pomena v številnih drugih modelih, ki obravnavajo obnavljanje oziroma interpretacijo latentne strukture podatkov. Poudarjen primer tega pristopa je raziskava Diffusion probabilistic model made slim \cite{yang2023diffusion}, ki rekonstrukcijo postavlja v središče modeliranja dinamičnih procesov.
+
+V tej študiji avtorji obravnavajo problem napovedovanja gibanja delcev na osnovi redkih ali šumnih opazovanj. Z uporabo denoising difuzijskega modela (\acrshort{SDDPM}) rekonstruirajo verjetne trajektorije gibanja tako, da iz šumnih začetnih signalov generirajo gladke, fizikalno smiselne poti. Ključno pri tem je, da rekonstrukcija ni ločen korak pred učno fazo, temveč integriran del modela, kar omogoča boljšo generalizacijo.
+
+Prenos te zamisli na področje detekcije AI-generirane kode je konceptualno zelo zanimiv. Namesto da bi klasifikator deloval neposredno na vhodni kodi, bi lahko rekonstrukcijski model najprej poskušal obnoviti “čist” latentni vzorec — bodisi človekovega stila kodiranja ali značilnega sloga AI. Tak pristop bi lahko pripomogel k večji robustnosti klasifikacije, saj bi se klasifikator osredotočal na bolj stabilne značilnosti, ki niso neposredno občutljive na stil ali obliko.
+
+%tole lahko gre potencijalno ven, če bo članek predolg
+\subsubsection{Možnosti integracije rekonstrukcije v prihodnje detektorje kode}
+Na osnovi omenjenih raziskav je mogoče domnevati, da bi se prihodnji sistemi za zaznavo AI-generirane kode lahko gibali v smeri dvostopenjskih arhitektur. 
+Prva stopnja bi izvajala rekonstrukcijo, bodisi preko difuzijskih modelov, autoencoderjev ali drugih generativnih pristopov. 
+Druga pa bi izvajala klasifikacijo na osnovi rekonstruktiranih značilnosti. Tovrsten pristop bi omogočal ne samo višjo natančnost, temveč tudi večjo interpretabilnost rezultatov.
+
+\subsection{Detekcija kode s kontrastnim učenjem}
+\subsubsection{Detekcija s klasično klasifikacijo}
+Študija ChatGPT Code Detection \cite{oedingen2024chatgpt} postavlja temelje za klasični pristop k detekciji AI-generirane kode. Avtorji uporabljajo različne predstavitve kode, med drugim:
+\begin{itemize}
+	\item TF-IDF kot bag-of-words model, ki temelji na frekvenci žetonov;
+	\item OpenAI Ada embeddings kot semantični vektorski prikaz kode;
+	\item Statistične značilke (dolžina, število komentarjev, razmerje med vrsticami itd.).
+\end{itemize}
+Ti prikazi so nato podani kot vhod v klasifikatorje (XGBoost, \acrshort{DNN}, Random Forest), ki napovedujejo, ali je koda nastala s ChatGPT. Avtorji eksperimentirajo tudi z fine-tuningom \acrshort{LLM} modelov, vendar ugotovijo, da enostavnejši modeli pogosto dosegajo primerljive rezultate.
+
+Glavna pomanjkljivost pristopa je njegova občutljivost na površinske spremembe v kodi, kot so komentarji ali zamenjave imen spremenljivk, kar pomeni, da modeli večinoma prepoznavajo stil in ne globoko semantično strukturo.
+
+\subsubsection{Detekcija s kontrastnim učenjem}
+Tretji pomemben pristop k detekciji je kontrastno učenje, kot ga predstavijo Xu in sod. v študiji Distinguishing LLM-generated from Human-written Code by Contrastive Learning\cite{xu2024distinguishing} . Glavni prispevki te študije so:
+\begin{itemize}
+	\item Zbirka podatkov HMCorp: 550.000 parov funkcij, generiranih v Pythonu in Javi, kjer je vsak par sestavljen iz človeško in LLM-generirane implementacije iste naloge.
+	\item Model CodeGPTSensor: Temelji na enkoderju UniXcoder, ki kodo pretvori v semantične vektorje.
+	\item Kontrastni okvir: Model se uči razlikovati med človeško in AI-generirano kodo tako, da zmanjšuje razdaljo med podobnimi primeri (npr. človeška-človeška) in povečuje razdaljo med različnimi (človeška-AI). vrsticami itd.).
+\end{itemize}
+Ključno je, da se model ne uči le prepoznavati značilnosti ene vrste kode, ampak neposredno razliko med vrstama. To pomeni, da je poudarek na relacijskem znanju, ne absolutnem.
+
+Ta pristop implicitno rekonstruira pomembne ločevalne lastnosti med obema vrstama kode, brez da bi moral neposredno generirati novo kodo. Lahko bi rekli, da kontrastno učenje nadomešča eksplicitno rekonstrukcijo z diskriminativno "rekonstruirano razliko" med obema izvoroma \cite{guo2022unixcoder}.
+
+\subsection{Zaključek pregleda literature}
+Vsak od treh pristopov: klasifikacija, rekonstrukcija in kontrastno učenje, prinaša edinstven pogled na problem detekcije AI-generirane kode. Medtem ko klasične metode izkoriščajo površinske značilnosti in so enostavne za implementacijo, rekonstrukcijski pristopi ponujajo globlje semantično razumevanje in večjo odpornost na preoblikovanje. Kontrastno učenje pa uspešno združuje semantično razlikovanje in visoko klasifikacijsko zmogljivost brez nujne potrebe po generativnem modelu.
+
+To delo gradi predvsem na metodologiji Oedingen in sod. \cite{oedingen2024chatgpt}, a se usmerja v smer rekonstrukcije ter razmišlja o prihodnji integraciji konceptov kontrastnega učenja. Cilj je izboljšati zanesljivost detekcije s prehodom iz površinskih značilnosti na globlje, latentne vzorce pisanja kode.
+
+\section{Ponovitev eksperimenta}
+V okviru prvega dela našega eksperimenta smo si zadali cilj rekreacije originalnega dela\cite{oedingen2024chatgpt}. Avtorji so v svoji študiji predstavili več metod za klasifikacijo izvorne kode kot človeško narejeno ali umetno generirane, pri čemer so uporabili različne kombinacije vektorizacijskih pristopov (npr. \acrshort{TF-IDF}, embeddingi) in klasifikacijskih modelov (od klasičnih do \acrshort{DNN}). Pomemben doprinos njihovega dela, k našemu eksperimentu je javna dostopnost kode in korpus generirane in človeško narejene programske kode, ki jih ponujajo v svojem repozitoriju GitHub – ChatGPT Code Detection, kar smo uporabili kot osnovo za našo rekonstrukcijo.
+\subsection{Tehnična izvedba}
+Pri rekonstrukciji eksperimenta smo sledili dokumentaciji objavljeni na repozitoriju ter poskušali v celoti reproducirati okolje in postopke. Vendar pa je rekonstrukcija naletela na več ovir, predvsem na področju strojne opreme in nekompatibilnosti določenih knjižnic:
+\begin{itemize}
+	\item Avtorji priporočajo uporabo sistema z vsaj 32 \acrshort{GB} \acrshort{RAM}, saj je procesiranje embeddingov (posebej pri modelih, kot je Ada v kombinaciji z \acrshort{DNN}) pomnilniško zelo zahtevno.
+	\item V našem primeru smo uporabljali sistem z omejenimi viri (cca. 16 \acrshort{GB} \acrshort{RAM}), zaradi česar nekateri deli kode niso delovali brez prilagoditev.
+	\item Poleg tega so bile nekatere knjižnice zastarele ali v neskladju z novejšimi verzijami Pythona, kar je zahtevalo dodatne nadgradnje in zamenjave.
+\end{itemize}
+Kljub omenjenim izzivom nam je uspelo rekonstruirati večino eksperimenta, največje težave nam je povzročilo formatiranje kode.
+
+V celotnem postopku smo uporabljali tri različne predstavitve podatkov (ang. feature extraction methods):
+\begin{enumerate}
+	\item Ročno izbrani atributi (features) – metrika iz same strukture kode (npr. število zank, funkcij, dolžina kode).
+	\item \acrshort{TF-IDF} – vektorizacija izvorne kode kot tekstovnega dokumenta.
+	\item Ada Embedding – vnaprej naučeni besedilni embeddingi, pridobljeni z uporabo modela iz družine OpenAI Ada\cite{aperdannier2024systematic}.
+\end{enumerate}
+
+Na teh predstavitvah smo preizkusili več klasifikatorjev:
+\begin{itemize}
+	\item Logistična regresija (\acrshort{LR})
+	\item Odločitvena drevesa (\acrshort{DT})
+	\item Naključni gozd (\acrshort{RF})
+	\item Boosting metode
+	\item Nevronske mreže (\acrshort{DNN})
+	\item Gaussov model mešanice (\acrshort{GMM})
+	\item Optimalno stroškovno občutljivo obrezano drevo (\acrshort{OPCT})
+	\item Bayesov klasifikator
+\end{itemize}
+
+Za vsako kombinacijo predstavitve in modela smo izvedli več ponovitev (5-kratno navzkrižno validacijo), na podlagi katerih smo izračunali povprečje in standardni odklon osnovnih metrik: natančnost (accuracy), preciznost (precision), priklic (recall), F1-mera in \acrfull{AUC}.
+
+\subsection{Rezultati}
+Rezultati so pokazali, da je mogoče tudi z omejenimi računalniškimi viri doseči primerljive uspešnosti kot v originalnem članku. Najuspešnejše kombinacije smo dosegli z uporabo \acrshort{TF-IDF} in Ada embeddingov, skupaj z naprednimi klasifikatorji, kot sta XGBoost in \acrshort{DNN}.
+
+Izpostavimo lahko naslednje najpomembnejše rezultate:\\
+\begin{table}[h!]
+	\centering
+	\small
+	\begin{tabular}{|c|c c c c c|}
+		\multicolumn{6}{c}{\textbf{features - original}}\\
+		\hline
+		& Accuracy & Precision & Recall & F1 & AUC\\
+		\hline
+		DT & 82.54±0.23 & 82.70±0.36 &
+		82.29±0.57 & 82.49±0.26 & 82.54±0.23\\
+		\hline
+		DNN & 85.37±0.80 & 84.58±2.73 & 86.84±4.77 & 85.54±1.21 & 93.73±0.42\\
+		\hline
+		GMM & 79.68±0.50 & 74.74±0.66 & 89.74±0.58 & 81.55±0.39 & 89.05±0.25\\
+		\hline
+		LR &  76.69±0.63 &  74.80±0.64 &  80.50±0.94 & 77.54±0.63 & 84.57±0.41\\
+		\hline
+		OPCT & 84.12±0.60 & 80.89±1.95 &  89.52±2.37 & 84.94±0.43 & 89.60±0.81\\
+		\hline
+		RF & 88.10±0.40 &  87.29±0.41 & 89.19±0.66 & 88.23±0.41 & 95.34±0.22\\
+		\hline
+		XGB & 88.48±0.26 & 87.39±0.46 & 89.93±0.42 & 88.64±0.24 & 95.59±0.20\\
+		\hline
+		\multicolumn{6}{c}{\textbf{features - rekreacija}}\\
+		\hline
+		& Accuracy & Precision & Recall & F1 & AUC\\
+		\hline
+		DT &  72.74±0.58 & 72.94±0.54 & 72.31±1.24 & 72.62±0.72 & 72.75±0.57\\
+		\hline
+		DNN &  77.51±0.89 & 78.15±3.65 & 77.18±6.72 & 77.31±2.33 & 86.69±0.30\\
+		\hline
+		GMM & 74.09±0.65 & 73.37±1.78 & 75.83±2.45 & 74.53±0.53 & 82.17±0.50\\
+		\hline
+		LR &  73.03±0.56 & 73.22±0.77 & 72.65±0.68 & 72.93±0.52 & 80.61±0.36\\
+		\hline
+		OPCT & 73.63±1.50 & 69.81±3.70 & 84.38±4.88 & 76.18±0.85 & 80.78±1.76\\
+		\hline
+		RF & 80.50±0.43 & 81.83±0.49 & 78.42±0.69 & 80.09±0.47 & 88.86±0.30\\
+		\hline
+		XGB &  80.29±0.54 & 80.57±0.62 & 79.84±0.69 & 80.20±0.55 & 88.65±0.35\\
+		\hline
+	\end{tabular}
+	\caption{Primerjava - features}
+	\label{tab:sample}
+\end{table}
+
+\begin{table}[h!]
+	\centering
+	\small
+	\begin{tabular}{|c|c c c c c|}
+		\multicolumn{6}{c}{\textbf{Embeding (ADA) - original}}\\
+		\hline
+		& Accuracy & Precision & Recall & F1 & AUC\\
+		\hline
+		DT &  80.82±0.50 & 80.63 ±0.55 &
+		81.46 ±0.67 & 79.83±1.03 & 80.82±0.50\\
+		\hline
+		DNN & 97.79±0.36 & 97.40±0.77 & 98.22±0.60 & 97.80±0.35 & 99.76±0.05\\
+		\hline
+		GMM & 92.71±0.39 & 95.10±0.48 & 90.06±0.66 & 92.51±0.42 & 97.37±0.21\\
+		\hline
+		LR & 95.87±0.13 & 95.93±0.13 & 94.60±0.24 & 97.30±0.25 & 99.06±0.077\\
+		\hline
+		OPCT & 95.53±0.27 & 95.59 ±0.25 & 94.35 ±0.81 & 96.87±0.65 & 97.24±0.466\\
+		\hline
+		RF &  96.87±0.65 & 97.24±0.46 &
+		90.67 ±0.63 & 94.52±0.55 & 97.85±0.145\\
+		\hline
+		XGB &  95.05±0.23 & 95.09±0.22 & 94.30±0.42 & 95.89±0.30 & 98.94±0.09\\
+		\hline
+		\multicolumn{6}{c}{\textbf{Embeding (ADA) - rekreacija}}\\
+		\hline
+		& Accuracy & Precision & Recall & F1 & AUC\\
+		\hline
+		DT & 79.92±0.61 & 80.72±0.39 & 78.61±1.18 & 79.65±0.73 & 79.92±0.61\\
+		\hline
+		DNN & 97.95±0.25 & 97.86±0.7 & 98.06±0.67 & 97.95±0.25 & 99.79±0.04\\
+		\hline
+		GMM & 93.29±0.43 & 96.05±0.33 & 90.31±0.95 & 93.09±0.47 & 97.84±0.2\\
+		\hline
+		LR & 96.34±0.24 & 95.27±0.34 & 97.52±0.34 & 96.38±0.24 & 99.15±0.1\\
+		\hline
+		OPCT & 95.51±0.28 & 94.69±0.56 & 96.45±0.93 & 95.55±0.3 & 96.99±0.37\\
+		\hline
+		RF & 91.48±0.27 & 91.02±0.38 & 92.05±0.39 & 91.53±0.27 & 97.4±0.14\\
+		\hline
+		XGB & 94.66±0.36 & 94.35±0.47 & 95.0±0.39 & 94.68±0.35 & 98.8±0.143\\
+		\hline
+	\end{tabular}
+	\caption{Primerjava - Embeding (ADA)}
+	\label{tab:sample}
+\end{table}
+
+\begin{table}[h!]
+	\centering
+	\small
+	\begin{tabular}{|c|c c c c c|}
+		\multicolumn{6}{c}{\textbf{TF-IDF - original}}\\
+		\hline
+		& Accuracy & Precision & Recall & F1 & AUC\\
+		\hline
+		DT & 95.82±0.31 & 95.82±0.31 &
+		95.93±0.26 & 95.71±0.52 & 95.82±0.31\\
+		\hline
+		DNN & 97.61±0.30 & 97.79±0.79 & 97.45±1.17 & 97.61±0.32 & 99.68±0.05\\
+		\hline
+		GMM & 94.60±0.32 & 95.24±0.26 & 93.89±0.60 & 94.56±0.34 & 96.18±0.26\\
+		\hline
+		LR & 97.06 ±0.24 &  97.09 ±0.24 &  96.11 ±0.28 & 98.09±0.31 & 99.46±0.05\\
+		\hline
+		OPCT & 96.72±0.26 & 96.72±0.26 & 96.78±0.50 & 96.66±0.50 & 97.62±0.41\\
+		\hline
+		RF &  98.04±0.11 & 98.04±0.11 & 97.77±0.18 & 98.31±0.23 & 99.72±0.05\\
+		\hline
+		XGB &  8.28±0.09 & 97.87±0.15 & 98.70±0.22 & 98.28±0.09 & 99.84±0.02\\
+		\hline
+		\multicolumn{6}{c}{\textbf{TF-IDF - rekreacija}}\\
+		\hline
+		& Accuracy & Precision & Recall & F1 & AUC\\
+		\hline
+		DT & 95.73±0.23 & 95.91±0.39 & 95.54±0.36 & 95.72±0.23 & 95.73±0.23\\
+		\hline
+		DNN & 97.74±0.28 & 97.66±0.66 & 97.84±0.92 & 97.74±0.29 & 99.66±0.06\\
+		\hline
+		GMM & 94.46±0.29 & 95.47±0.39 & 93.36±0.51 & 94.4±0.29 & 96.32±0.24\\
+		\hline
+		LR & 96.99±0.18 & 95.92±0.24 & 98.15±0.26 & 97.02±0.18 & 99.41±0.06\\
+		\hline
+		OPCT & 96.62±0.27 & 96.55±0.67 & 96.69±0.58 & 96.62±0.26 & 97.53±0.24\\
+		\hline
+		RF & 98.07±0.16 & 97.62±0.21 & 98.54±0.26 & 98.07±0.16 & 99.74±0.05\\
+		\hline
+		XGB & 98.34±0.2 & 97.93±0.26 & 98.77±0.3 & 98.34±0.2 & 99.87±0.03\\
+		\hline
+	\end{tabular}
+	\caption{Primerjava - TF-IDF}
+	\label{tab:sample}
+\end{table}
+
+\newpage
+\section{Kratice}
+\begin{itemize}
+	\item \acrfull{LLM}
+	\item \acrfull{TF-IDF}
+	\item \acrfull{SDDPM}
+	\item \acrfull{DNN}
+	\item \acrfull{GB}
+	\item \acrfull{RAM}
+	\item \acrfull{LR}
+	\item \acrfull{DT}
+	\item \acrfull{RF}
+	\item \acrfull{GMM}
+	\item \acrfull{OPCT}
+	\item \acrfull{AUC}
+\end{itemize}
+
+\renewcommand\refname{Literatura} 
 \bibliographystyle{IEEEtran}
-\bibliography{references.bib}
+\bibliography{literatura.bib}
 
 \end{document}
